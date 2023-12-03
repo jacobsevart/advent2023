@@ -4,8 +4,15 @@ import java.util.*;
 
 public class PartNumbers {
 
-    record Coordinate(int i, int j) {};
-    record Part(int num, Coordinate relatedSymbol) {};
+    record Coordinate(int i, int j) {
+    }
+
+    ;
+
+    record Part(int num, Coordinate relatedSymbol) {
+    }
+
+    ;
 
     public static long partTwo(Scanner in, int n) {
         return gearRatios(arrangeBySymbol(partNumbers(load(in, n))));
@@ -46,6 +53,7 @@ public class PartNumbers {
 
         return acc;
     }
+
     public static List<Part> partNumbers(char[][] map) {
         List<Part> nums = new ArrayList<>();
 
@@ -90,21 +98,22 @@ public class PartNumbers {
 
     public static Coordinate adjacentSymbol(char[][] map, int i, int j) {
         // -1, -1
-        if (i - 1 >= 0 && j - 1 >= 0 && isSymbol(map[i - 1][j - 1])) return new Coordinate(i -1, j -1);
+        if (i - 1 >= 0 && j - 1 >= 0 && isSymbol(map[i - 1][j - 1])) return new Coordinate(i - 1, j - 1);
         // -1, 0
-        if (i - 1 >= 0 && isSymbol(map[i - 1][j])) return new Coordinate(i -1, j);
+        if (i - 1 >= 0 && isSymbol(map[i - 1][j])) return new Coordinate(i - 1, j);
         // -1, 1
-        if (i - 1 >= 0 && j + 1 < map[0].length && isSymbol(map[i - 1][j + 1])) return new Coordinate(i -1, j + 1);
+        if (i - 1 >= 0 && j + 1 < map[0].length && isSymbol(map[i - 1][j + 1])) return new Coordinate(i - 1, j + 1);
         // 0, -1
         if (j - 1 >= 0 && isSymbol(map[i][j - 1])) return new Coordinate(i, j - 1);
         // 0, 1
         if (j + 1 < map[0].length && isSymbol(map[i][j + 1])) return new Coordinate(i, j + 1);
         // 1, -1
-        if (i + 1 < map.length && j - 1 >= 0 && isSymbol(map[i + 1][j - 1])) return new Coordinate (i + 1, j - 1);
+        if (i + 1 < map.length && j - 1 >= 0 && isSymbol(map[i + 1][j - 1])) return new Coordinate(i + 1, j - 1);
         // 1, 0
         if (i + 1 < map.length && isSymbol(map[i + 1][j])) return new Coordinate(i + 1, j);
         // 1, 1
-        if (i + 1 < map.length && j + 1 < map[0].length && isSymbol(map[i + 1][j + 1])) return new Coordinate(i + 1, j + 1);
+        if (i + 1 < map.length && j + 1 < map[0].length && isSymbol(map[i + 1][j + 1]))
+            return new Coordinate(i + 1, j + 1);
 
         return null;
     }

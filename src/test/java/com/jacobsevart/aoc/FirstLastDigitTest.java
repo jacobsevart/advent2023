@@ -20,7 +20,9 @@ class FirstLastDigitTest {
 
     @Test
     public void testSumFirstLastWithDigit() {
-        record TestCase(String string, int expected) {};
+        record TestCase(String string, int expected) {
+        }
+        ;
 
         TestCase[] testcases = {
                 new TestCase("two1nine", 29),

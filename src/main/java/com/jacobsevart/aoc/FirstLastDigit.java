@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class FirstLastDigit {
     Node dfa;
     Node reverseDFA;
-    Map<String,Integer> forwardEntries;
+    Map<String, Integer> forwardEntries;
 
     public FirstLastDigit() {
         forwardEntries = getEntries(false);
@@ -24,6 +24,7 @@ public class FirstLastDigit {
 
         System.out.println(acc);
     }
+
     public static int sumFirstLast(Scanner in) {
         int acc = 0;
         for (String line = in.nextLine(); in.hasNextLine(); line = in.nextLine()) {
@@ -49,10 +50,14 @@ public class FirstLastDigit {
         char[] arr = line.toCharArray();
 
         int i = 0;
-        for(; i < arr.length && (arr[i] < '0' || arr[i] > '9'); i++) {};
+        for (; i < arr.length && (arr[i] < '0' || arr[i] > '9'); i++) {
+        }
+        ;
 
         int j = arr.length - 1;
-        for (; j > 0 && (arr[j] < '0' || arr[j] > '9'); j--) {};
+        for (; j > 0 && (arr[j] < '0' || arr[j] > '9'); j--) {
+        }
+        ;
 
         return (((arr[i] - '0') * 10) + (arr[j] - '0'));
     }
@@ -61,7 +66,7 @@ public class FirstLastDigit {
         Node node = dfa;
         int backtrackTo = 0;
         int firstDigit = -1;
-        for (int i = 0; i < line.length();i++) {
+        for (int i = 0; i < line.length(); i++) {
             if (node != dfa && !node.next.containsKey(line.charAt(i))) {
                 node = dfa;
                 i = backtrackTo;
@@ -104,8 +109,8 @@ public class FirstLastDigit {
         return (firstDigit * 10) + lastDigit;
     }
 
-    public static Map<String,Integer> getEntries(boolean reverse) {
-        Map<String,Integer> entries = new HashMap<>();
+    public static Map<String, Integer> getEntries(boolean reverse) {
+        Map<String, Integer> entries = new HashMap<>();
         for (int i = 1; i < 10; i++) {
             entries.put(String.format("%d", i), i);
         }
@@ -121,10 +126,10 @@ public class FirstLastDigit {
         return entries;
     }
 
-    public static Node buildTree(Map<String,Integer> entries) {
+    public static Node buildTree(Map<String, Integer> entries) {
         Node root = new Node();
 
-        for (Map.Entry<String,Integer> entry : entries.entrySet()) {
+        for (Map.Entry<String, Integer> entry : entries.entrySet()) {
             Node node = root;
             for (int i = 0; i < entry.getKey().length(); i++) {
                 if (!node.next.containsKey(entry.getKey().charAt(i))) {

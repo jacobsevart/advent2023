@@ -3,7 +3,10 @@ package com.jacobsevart.aoc;
 import java.util.Scanner;
 
 public class CubeConundrum {
-    record Game(int red, int green, int blue) {};
+    record Game(int red, int green, int blue) {
+    }
+
+    ;
 
     public static long power(Scanner in) {
         long acc = 0;
@@ -53,10 +56,17 @@ public class CubeConundrum {
                 String[] spaceSeparated = color.trim().split(" ");
                 int num = Integer.parseInt(spaceSeparated[0]);
                 switch (spaceSeparated[1]) {
-                    case "red": red = num; break;
-                    case "blue": blue = num; break;
-                    case "green": green = num; break;
-                    default: throw new RuntimeException(String.format("unknown color %s", spaceSeparated[1]));
+                    case "red":
+                        red = num;
+                        break;
+                    case "blue":
+                        blue = num;
+                        break;
+                    case "green":
+                        green = num;
+                        break;
+                    default:
+                        throw new RuntimeException(String.format("unknown color %s", spaceSeparated[1]));
                 }
             }
 
