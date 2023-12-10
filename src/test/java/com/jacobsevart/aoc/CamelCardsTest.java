@@ -16,6 +16,7 @@ class CamelCardsTest {
             KTJJT 220
             QQQJA 483
             """;
+
     @Test
     public void testCardClassification() {
         assertEquals(CamelCards.Kind.FIVE_KIND, CamelCards.Hand.assignKind(new char[]{'A', 'A', 'A', 'A', 'A'}));
@@ -25,6 +26,15 @@ class CamelCardsTest {
         assertEquals(CamelCards.Kind.TWO_PAIR, CamelCards.Hand.assignKind(new char[]{'2', '3', '4', '3', '2'}));
         assertEquals(CamelCards.Kind.ONE_PAIR, CamelCards.Hand.assignKind(new char[]{'A', '2', '3', 'A', '4'}));
         assertEquals(CamelCards.Kind.HIGH_CARD, CamelCards.Hand.assignKind(new char[]{'2', '3', '4', '5', '6'}));
+
+
+        assertEquals(CamelCards.Kind.FULL_HOUSE, CamelCards.Hand.assignKindTwo("AAJKK".toCharArray()));
+        assertEquals(CamelCards.Kind.THREE_KIND, CamelCards.Hand.assignKindTwo("AQJJK".toCharArray()));
+        assertEquals(CamelCards.Kind.THREE_KIND, CamelCards.Hand.assignKindTwo("AQJKK".toCharArray()));
+        assertEquals(CamelCards.Kind.FIVE_KIND, CamelCards.Hand.assignKindTwo("1JJJJ".toCharArray()));
+        assertEquals(CamelCards.Kind.FIVE_KIND, CamelCards.Hand.assignKindTwo("JJJJJ".toCharArray()));
+        // two pair with jokers is impossible
+        assertEquals(CamelCards.Kind.ONE_PAIR, CamelCards.Hand.assignKindTwo("12J35".toCharArray()));
     }
 
     @Test
@@ -52,7 +62,12 @@ class CamelCardsTest {
 
     @Test
     public void testPartOneSmall() {
-        assertEquals(6440, CamelCards.partOne(new Scanner(testInput)));
+        assertEquals(6440, CamelCards.computeWinnings(new Scanner(testInput), false));
+    }
+
+    @Test
+    public void testPartTwoSmall() {
+        assertEquals(5905, CamelCards.computeWinnings(new Scanner(testInput), true));
     }
 
     @Test
@@ -60,7 +75,15 @@ class CamelCardsTest {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day7.txt");
         assertNotNull(txtFile);
 
-        assertEquals(247823654, CamelCards.partOne(new Scanner(txtFile)));
+        assertEquals(247823654, CamelCards.computeWinnings(new Scanner(txtFile), false));
+    }
+
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day7.txt");
+        assertNotNull(txtFile);
+
+        assertEquals(0, CamelCards.computeWinnings(new Scanner(txtFile), true));
     }
 
 }

@@ -13,14 +13,23 @@ public class CamelCards {
         ONE_PAIR,
         HIGH_CARD
     }
-   static List<Character> possibleCards = Arrays.asList('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
 
-    record Hand(char[] cards, Kind kind) implements Comparable {
+    static List<Character> possibleCards = Arrays.asList('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2');
+    static List<Character> possibleCardsTwo = Arrays.asList('A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J');
+
+
+    record Hand(char[] cards, Kind kind, boolean partTwo) implements Comparable {
         Hand(String cards) {
-            this(cards.toCharArray(), assignKind(cards.toCharArray()));
+            this(cards.toCharArray(), assignKind(cards.toCharArray()), false);
         }
+
+        Hand(String cards, boolean partTwo) {
+            this(cards.toCharArray(), assignKindTwo(cards.toCharArray()), true);
+            if (!partTwo) throw new IllegalArgumentException();
+        }
+
         Hand(char[] cards) {
-            this(cards, assignKind(cards));
+            this(cards, assignKind(cards), false);
         }
 
         static Kind assignKind(char[] cards) {
@@ -62,20 +71,90 @@ public class CamelCards {
 
             return kind;
         }
+
+        static Kind assignKindTwo(char[] cards) {
+            Map<Character, Integer> freq = new HashMap<>();
+            for (char c : cards) {
+                int count = 0;
+                if (freq.containsKey(c)) {
+                    count = freq.get(c);
+                }
+                freq.put(c, count + 1);
+            }
+
+            int numJokers = freq.getOrDefault('J', 0);
+
+            Kind kind = null;
+            var possibleMaxEntry = freq.entrySet().stream().filter(x -> x.getKey() != 'J').max(Map.Entry.comparingByValue());
+            if (possibleMaxEntry.isEmpty()) {
+                // five jokers
+                return Kind.FIVE_KIND;
+            }
+            var maxEntry = possibleMaxEntry.get();
+            int maxOccurrences = maxEntry.getValue();
+            char maxOccurrencesOf = maxEntry.getKey();
+
+            if (maxOccurrences + numJokers == 5) {
+                kind = Kind.FIVE_KIND;
+            } else if (maxOccurrences + numJokers == 4) {
+                kind = Kind.FOUR_KIND;
+            } else if (maxOccurrences + numJokers == 3) {
+
+                boolean twoOfSomethingElse = freq
+                        .entrySet()
+                        .stream()
+                        .filter(x -> x.getKey() != maxOccurrencesOf)
+                        .anyMatch(x -> x.getValue() == 2);
+
+                boolean twoOfSomethingElseNotJoker = freq
+                        .entrySet()
+                        .stream()
+                        .filter(x -> x.getKey() != maxOccurrencesOf)
+                        .filter(x -> x.getKey() != 'J')
+                        .anyMatch(x -> x.getValue() == 2);
+
+                if ((maxOccurrences == 3 && twoOfSomethingElse) || (maxOccurrences == 2 && numJokers == 1 && twoOfSomethingElseNotJoker)) {
+                    kind = Kind.FULL_HOUSE;
+                } else {
+                    kind = Kind.THREE_KIND;
+                }
+            } else {
+                int twos = 0;
+                for (int frequency : freq.values()) {
+                    if (frequency == 2) twos++;
+                }
+
+                if (twos + numJokers == 2) {
+                    kind = Kind.TWO_PAIR;
+                } else if (twos + numJokers == 1) {
+                    kind = Kind.ONE_PAIR;
+                } else {
+                    kind = Kind.HIGH_CARD;
+                }
+            }
+
+            return kind;
+        }
+
         @Override
         public int compareTo(Object o) {
             if (o == null) throw new NullPointerException();
             if (!(o instanceof Hand h)) throw new IllegalArgumentException();
 
-            if (this.kind.compareTo(h.kind) < 0)  {
+            if (this.kind.compareTo(h.kind) < 0) {
                 return 1;
             } else if (this.kind.compareTo(h.kind) > 0) {
                 return -1;
             }
 
             for (int i = 0; i < this.cards.length; i++) {
-                Integer left = possibleCards.indexOf(this.cards[i]);
-                Integer right = possibleCards.indexOf(h.cards[i]);
+                var cardsArray = possibleCards;
+                if (this.partTwo) {
+                    cardsArray = possibleCardsTwo;
+                }
+
+                Integer left = cardsArray.indexOf(this.cards[i]);
+                Integer right = cardsArray.indexOf(h.cards[i]);
 
                 int cmp = left.compareTo(right);
                 if (cmp < 0) {
@@ -101,15 +180,23 @@ public class CamelCards {
         }
     }
 
-    record Bet(Hand hand, int bid) {};
+    record Bet(Hand hand, int bid) {
+    }
 
-    public static long partOne(Scanner in) {
+    ;
+
+    public static long computeWinnings(Scanner in, boolean partTwo) {
         List<Bet> bets = new ArrayList<>();
 
         while (in.hasNext()) {
-            Hand h = new Hand(in.next());
-            int bet = in.nextInt();
+            Hand h;
+            if (partTwo) {
+                h = new Hand(in.next(), true);
+            } else {
+                h = new Hand(in.next());
+            }
 
+            int bet = in.nextInt();
             bets.add(new Bet(h, bet));
         }
 
