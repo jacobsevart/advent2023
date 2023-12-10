@@ -26,6 +26,18 @@ class HauntedWastelandTest {
             BBB = (AAA, ZZZ)
             ZZZ = (ZZZ, ZZZ)""";
 
+    String testInputSimultaenous = """
+            LR
+                        
+            11A = (11B, XXX)
+            11B = (XXX, 11Z)
+            11Z = (11B, XXX)
+            22A = (22B, XXX)
+            22B = (22C, 22C)
+            22C = (22Z, 22Z)
+            22Z = (22B, 22B)
+            XXX = (XXX, XXX)""";
+
     @Test
     public void testParse() {
         var hwl = new HauntedWasteland(new Scanner(testInput));
@@ -52,9 +64,27 @@ class HauntedWastelandTest {
 
         var hwl = new HauntedWasteland(new Scanner(txtFile));
 
-        assertEquals(0, hwl.reach("AAA", "ZZZ"));
+        assertEquals(14257, hwl.reach("AAA", "ZZZ"));
     }
 
+    @Test
+    public void testPartTwoSmall() {
+        var hwl = new HauntedWasteland(new Scanner(testInputSimultaenous));
+        assertEquals(6, hwl.reachSimulatenous());
+    }
 
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day8.txt");
+        assertNotNull(txtFile);
 
+        var hwl = new HauntedWasteland(new Scanner(txtFile));
+        assertEquals(16187743689077L, hwl.reachSimulatenous());
+    }
+
+    @Test
+    public void testGcdLcm() {
+        assertEquals(6, HauntedWasteland.gcd(48, 18));
+        assertEquals(6, HauntedWasteland.lcm(2, 3));
+    }
 }
