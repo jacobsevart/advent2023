@@ -18,7 +18,11 @@ public class Differences {
     }
 
     public int partOne() {
-        return sequences.stream().map(Differences::extrapolate).reduce(0, (x, y) -> x + y);
+        return sequences.stream().map(Differences::extrapolate).reduce(0, Integer::sum);
+    }
+
+    public int partTwo() {
+        return sequences.stream().map(List::reversed).map(Differences::extrapolate).reduce(0, Integer::sum);
     }
 
     static int extrapolate(List<Integer> sequence) {
