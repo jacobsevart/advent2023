@@ -23,6 +23,12 @@ class SailboatRaceTest {
     }
 
     @Test
+    public void testPartTwo() {
+        assertEquals(71503, SailboatRace.waysToBeatRecord(new SailboatRace.Race(71530L, 940200L)));
+        assertEquals(41513103, SailboatRace.waysToBeatRecord(new SailboatRace.Race(58819676L, 434104122191218L)));
+    }
+
+    @Test
     public void testWays() {
        var race = new SailboatRace(new Scanner(testInput));
        int[] expected = {4,8,9};
