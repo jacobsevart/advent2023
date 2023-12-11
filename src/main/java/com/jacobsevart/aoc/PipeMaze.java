@@ -28,15 +28,153 @@ public class PipeMaze {
         }
     }
 
+    int partTwo() {
+        scale();
+        for (int i = 0; i < maze.size(); i++) {
+            floodFill2(new PipeMaze.Coordinate(i, 0));
+            floodFill2(new PipeMaze.Coordinate(i, maze.get(0).size() - 1));
+        }
+
+        for (int i = 0; i < maze.get(0).size(); i++) {
+            floodFill2(new PipeMaze.Coordinate(0, i));
+            floodFill2(new PipeMaze.Coordinate(maze.size() - 1, i));
+        }
+        downScale();
+
+        System.out.println(draw());
+
+        return countCharater('.');
+    }
+
+    int countCharater(char c) {
+        int cnt = 0;
+        for (int i = 0; i < maze.size(); i++) {
+            for (int j = 0; j < maze.get(0).size(); j++) {
+                if (maze.get(i).get(j) == c) {
+                    cnt++;
+                }
+            }
+        }
+
+        return cnt;
+    }
+
+    // IDEA: flood fill from the top corner
+    // don't go through the path
+    void floodFill(List<Coordinate> path, Coordinate node) {
+        if (!boundsCheck(node)) return;
+        if (path.contains(node)) return;
+        if (maze.get(node.x).get(node.y) == '0') return;
+
+        maze.get(node.x).set(node.y, '0');
+
+        // north
+        floodFill(path, new Coordinate(node.x -1, node.y));
+        floodFill(path, new Coordinate(node.x + 1, node.y));
+        floodFill(path, new Coordinate(node.x, node.y - 1));
+        floodFill(path, new Coordinate(node.x, node.y + 1));
+    }
+
+    // IDEA: flood fill from the top corner
+    // don't go through the path
+    void floodFill2(Coordinate node) {
+        if (!boundsCheck(node)) return;
+        if (maze.get(node.x).get(node.y) != '.') return;
+
+        maze.get(node.x).set(node.y, '0');
+
+        // north
+        floodFill2(new Coordinate(node.x -1, node.y));
+        floodFill2(new Coordinate(node.x + 1, node.y));
+        floodFill2(new Coordinate(node.x, node.y - 1));
+        floodFill2(new Coordinate(node.x, node.y + 1));
+    }
+
+
+    void scale() {
+        List<List<Character>> out = new ArrayList<>();
+        for (int i=0; i < maze.size(); i++) {
+            List<Character> row = new ArrayList<>();
+            for (int j = 0; j < maze.get(0).size(); j++) {
+                char c = maze.get(i).get(j);
+                row.add(maze.get(i).get(j));
+                if (c == '-' || c == 'L' || c == 'F') {
+                    row.add('-');
+                } else {
+                    if (j + 1 < maze.get(0).size()) {
+                        char c2 = maze.get(i).get(j + 1);
+                        if (c2 == 'J' || c2 == '7' || c2 == '-') {
+                            row.add('-');
+                        } else {
+                            row.add('.');
+                        }
+                    } else {
+                        row.add('.');
+                    }
+                }
+            }
+            out.add(row);
+
+            row = new ArrayList<>();
+            // add fake row
+            for (int j = 0; j < maze.get(i).size(); j++) {
+                char c = maze.get(i).get(j);
+
+                if (c == '|' || c == '7' || c == 'F') {
+                    row.add('|');
+                } else {
+                    if (i + 1 < maze.size()) {
+                        char c2 = maze.get(i + 1).get(j);
+                        if (c2 == '|' || c2 == 'L' || c2 == 'J') {
+                            row.add('|');
+                        } else {
+                            row.add('.');
+                        }
+                    } else {
+                        row.add('.');
+                    }
+                }
+            }
+            //out.add(row);
+        }
+
+        maze = out;
+    }
+
+    void downScale() {
+        List<List<Character>> out = new ArrayList<>();
+        for (int i=0; i  < maze.size(); i++) {
+            List<Character> row = new ArrayList<>();
+            for (int j = 0; j + 1 < maze.get(0).size(); j += 2) {
+                row.add(maze.get(i).get(j));
+            }
+            out.add(row);
+        }
+
+        maze = out;
+    }
+
     String draw(List<Coordinate> coords) {
         StringBuilder sb = new StringBuilder();
         for (int i =0 ; i < maze.size(); i++) {
-            for (int j = 0; j < maze.size(); j++) {
+            for (int j = 0; j < maze.get(0).size(); j++) {
                 if (coords.contains(new Coordinate(i, j))) {
                     sb.append(maze.get(i).get(j));
                 } else {
                    sb.append(".");
                 }
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    String draw() {
+        StringBuilder sb = new StringBuilder();
+        for (int i =0 ; i < maze.size(); i++) {
+            for (int j = 0; j < maze.get(0).size(); j++) {
+                sb.append(maze.get(i).get(j));
             }
             sb.append("\n");
         }

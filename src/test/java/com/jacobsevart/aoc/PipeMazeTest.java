@@ -24,6 +24,74 @@ class PipeMazeTest {
             L|-JF""";
 
     @Test
+    public void testPartTwo() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day10.txt");
+        assertNotNull(txtFile);
+
+        var maze = new PipeMaze(new Scanner(txtFile));
+        var path = maze.cyclePath();
+        String cycle = maze.draw(path);
+
+        maze = new PipeMaze(new Scanner(cycle));
+        assertEquals(0, maze.partTwo());
+    }
+
+    @Test
+    public void testCountContained() {
+        String testInput = """
+                ...........
+                .S-------7.
+                .|F-----7|.
+                .||.....||.
+                .||.....||.
+                .|L-7.F-J|.
+                .|..|.|..|.
+                .L--J.L--J.
+                ...........""";
+
+        var maze = new PipeMaze(new Scanner(testInput));
+        var path = maze.cyclePath();
+        maze.floodFill(path, new PipeMaze.Coordinate(0, 0));
+        System.out.println(maze.draw());
+        assertEquals(4, maze.countCharater('.'));
+    }
+
+    @Test
+    public void testCountContainedClosed() {
+        String testInput = """
+                ..........
+                .S------7.
+                .|F----7|.
+                .||....||.
+                .||....||.
+                .|L-7F-J|.
+                .|..||..|.
+                .L--JL--J.
+                ..........
+                """;
+
+        var maze = new PipeMaze(new Scanner(testInput));
+        assertEquals(4, maze.partTwo());
+    }
+
+    @Test
+    public void testCountContainsOpenBig() {
+        String testInput = """
+                .F----7F7F7F7F-7....
+                .|F--7||||||||FJ....
+                .||.FJ||||||||L7....
+                FJL7L7LJLJ||LJ.L-7..
+                L--J.L7...LJS7F-7L7.
+                ....F-J..F7FJ|L7L7L7
+                ....L7.F7||L7|.L7L7|
+                .....|FJLJ|FJ|F7|.LJ
+                ....FJL-7.||.||||...
+                ....L---J.LJ.LJLJ...""";
+
+        var maze = new PipeMaze(new Scanner(testInput));
+        assertEquals(8, maze.partTwo());
+    }
+    @Test
     public void testPartOne() {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day10.txt");
         assertNotNull(txtFile);
