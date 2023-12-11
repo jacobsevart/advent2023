@@ -83,7 +83,7 @@ class CamelCardsTest {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day7.txt");
         assertNotNull(txtFile);
 
-        assertEquals(0, CamelCards.computeWinnings(new Scanner(txtFile), true));
+        assertEquals(245461700L, CamelCards.computeWinnings(new Scanner(txtFile), true));
     }
 
 }

@@ -49,7 +49,7 @@ class DifferencesTest {
         assertNotNull(txtFile);
 
         var diffs = new Differences(new Scanner(txtFile));
-        assertEquals(0, diffs.partTwo());
+        assertEquals(971L, diffs.partTwo());
     }
 
     @Test
