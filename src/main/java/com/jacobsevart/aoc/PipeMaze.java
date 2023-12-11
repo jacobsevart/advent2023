@@ -3,7 +3,6 @@ package com.jacobsevart.aoc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 public class PipeMaze {
     record Coordinate(int x, int y) {};
@@ -30,6 +29,7 @@ public class PipeMaze {
 
     int partTwo() {
         scale();
+        System.out.println(draw());
         for (int i = 0; i < maze.size(); i++) {
             floodFill2(new PipeMaze.Coordinate(i, 0));
             floodFill2(new PipeMaze.Coordinate(i, maze.get(0).size() - 1));
@@ -75,8 +75,6 @@ public class PipeMaze {
         floodFill(path, new Coordinate(node.x, node.y + 1));
     }
 
-    // IDEA: flood fill from the top corner
-    // don't go through the path
     void floodFill2(Coordinate node) {
         if (!boundsCheck(node)) return;
         if (maze.get(node.x).get(node.y) != '.') return;
@@ -92,58 +90,70 @@ public class PipeMaze {
 
 
     void scale() {
-        List<List<Character>> out = new ArrayList<>();
+        List<List<Character>> firstPass = new ArrayList<>();
         for (int i=0; i < maze.size(); i++) {
-            List<Character> row = new ArrayList<>();
-            for (int j = 0; j < maze.get(0).size(); j++) {
-                char c = maze.get(i).get(j);
-                row.add(maze.get(i).get(j));
-                if (c == '-' || c == 'L' || c == 'F') {
-                    row.add('-');
-                } else {
-                    if (j + 1 < maze.get(0).size()) {
-                        char c2 = maze.get(i).get(j + 1);
-                        if (c2 == 'J' || c2 == '7' || c2 == '-') {
-                            row.add('-');
-                        } else {
-                            row.add('.');
-                        }
-                    } else {
-                        row.add('.');
-                    }
-                }
-            }
-            out.add(row);
-
-            row = new ArrayList<>();
-            // add fake row
-            for (int j = 0; j < maze.get(i).size(); j++) {
-                char c = maze.get(i).get(j);
-
-                if (c == '|' || c == '7' || c == 'F') {
-                    row.add('|');
-                } else {
-                    if (i + 1 < maze.size()) {
-                        char c2 = maze.get(i + 1).get(j);
-                        if (c2 == '|' || c2 == 'L' || c2 == 'J') {
-                            row.add('|');
-                        } else {
-                            row.add('.');
-                        }
-                    } else {
-                        row.add('.');
-                    }
-                }
-            }
-            //out.add(row);
+            firstPass.add(interpolateColumns(i));
         }
 
-        maze = out;
+        List<List<Character>> secondPass = new ArrayList<>();
+
+        for (int i = 0; i < firstPass.size(); i++) {
+            secondPass.add(firstPass.get(i));
+            secondPass.add(interpolateRows(firstPass, i));
+        }
+
+        maze = secondPass;
+    }
+
+    private List<Character> interpolateColumns(int i) {
+        List<Character> row = new ArrayList<>();
+        for (int j = 0; j < maze.get(0).size(); j++) {
+            char c = maze.get(i).get(j);
+            row.add(maze.get(i).get(j));
+            if (c == '-' || c == 'L' || c == 'F') {
+                row.add('-');
+            } else {
+                if (j + 1 < maze.get(0).size()) {
+                    char c2 = maze.get(i).get(j + 1);
+                    if (c2 == 'J' || c2 == '7' || c2 == '-') {
+                        row.add('-');
+                    } else {
+                        row.add('.');
+                    }
+                } else {
+                    row.add('.');
+                }
+            }
+        }
+        return row;
+    }
+
+    private List<Character> interpolateRows(List<List<Character>> firstPass, int i) {
+        List<Character> row = new ArrayList<>();
+
+        for (int j = 0; j < firstPass.get(i).size(); j++) {
+            char c = firstPass.get(i).get(j);
+            if (c == '|' || c == '7' || c == 'F') {
+                row.add('|');
+            } else {
+                if (i + 1 < firstPass.size()) {
+                    char c2 = firstPass.get(i + 1).get(j);
+                    if (c2 == '|' || c2 == 'L' || c2 == 'J') {
+                        row.add('|');
+                    } else {
+                        row.add('.');
+                    }
+                } else {
+                    row.add('.');
+                }
+            }
+        }
+        return row;
     }
 
     void downScale() {
         List<List<Character>> out = new ArrayList<>();
-        for (int i=0; i  < maze.size(); i++) {
+        for (int i=0; i + 1 < maze.size(); i += 2) {
             List<Character> row = new ArrayList<>();
             for (int j = 0; j + 1 < maze.get(0).size(); j += 2) {
                 row.add(maze.get(i).get(j));
@@ -267,6 +277,4 @@ public class PipeMaze {
         }
         return false;
     }
-
-
 }

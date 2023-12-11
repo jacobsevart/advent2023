@@ -33,7 +33,7 @@ class PipeMazeTest {
         String cycle = maze.draw(path);
 
         maze = new PipeMaze(new Scanner(cycle));
-        assertEquals(0, maze.partTwo());
+        assertEquals(567, maze.partTwo());
     }
 
     @Test
