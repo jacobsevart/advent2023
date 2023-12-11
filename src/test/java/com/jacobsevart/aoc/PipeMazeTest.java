@@ -3,7 +3,6 @@ package com.jacobsevart.aoc;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
-import java.nio.channels.Pipe;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,10 +49,7 @@ class PipeMazeTest {
                 ...........""";
 
         var maze = new PipeMaze(new Scanner(testInput));
-        var path = maze.cyclePath();
-        maze.floodFill(path, new PipeMaze.Coordinate(0, 0));
-        System.out.println(maze.draw());
-        assertEquals(4, maze.countCharater('.'));
+        assertEquals(4, maze.partTwo());
     }
 
     @Test

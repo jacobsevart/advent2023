@@ -3,6 +3,7 @@ package com.jacobsevart.aoc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class PipeMaze {
     record Coordinate(int x, int y) {};
@@ -31,14 +32,16 @@ public class PipeMaze {
         scale();
         System.out.println(draw());
         for (int i = 0; i < maze.size(); i++) {
-            floodFill2(new PipeMaze.Coordinate(i, 0));
-            floodFill2(new PipeMaze.Coordinate(i, maze.get(0).size() - 1));
+            floodFillStack(new PipeMaze.Coordinate(i, 0));
+            floodFillStack(new PipeMaze.Coordinate(i, maze.get(0).size() - 1));
         }
 
         for (int i = 0; i < maze.get(0).size(); i++) {
-            floodFill2(new PipeMaze.Coordinate(0, i));
-            floodFill2(new PipeMaze.Coordinate(maze.size() - 1, i));
+            floodFillStack(new PipeMaze.Coordinate(0, i));
+            floodFillStack(new PipeMaze.Coordinate(maze.size() - 1, i));
         }
+        System.out.println(draw());
+
         downScale();
 
         System.out.println(draw());
@@ -59,33 +62,36 @@ public class PipeMaze {
         return cnt;
     }
 
-    // IDEA: flood fill from the top corner
-    // don't go through the path
-    void floodFill(List<Coordinate> path, Coordinate node) {
-        if (!boundsCheck(node)) return;
-        if (path.contains(node)) return;
-        if (maze.get(node.x).get(node.y) == '0') return;
-
-        maze.get(node.x).set(node.y, '0');
-
-        // north
-        floodFill(path, new Coordinate(node.x -1, node.y));
-        floodFill(path, new Coordinate(node.x + 1, node.y));
-        floodFill(path, new Coordinate(node.x, node.y - 1));
-        floodFill(path, new Coordinate(node.x, node.y + 1));
-    }
-
-    void floodFill2(Coordinate node) {
+    void floodFill(Coordinate node) {
         if (!boundsCheck(node)) return;
         if (maze.get(node.x).get(node.y) != '.') return;
 
         maze.get(node.x).set(node.y, '0');
 
         // north
-        floodFill2(new Coordinate(node.x -1, node.y));
-        floodFill2(new Coordinate(node.x + 1, node.y));
-        floodFill2(new Coordinate(node.x, node.y - 1));
-        floodFill2(new Coordinate(node.x, node.y + 1));
+        floodFill(new Coordinate(node.x -1, node.y));
+        floodFill(new Coordinate(node.x + 1, node.y));
+        floodFill(new Coordinate(node.x, node.y - 1));
+        floodFill(new Coordinate(node.x, node.y + 1));
+    }
+
+    void floodFillStack(Coordinate start) {
+        Stack<Coordinate> stack = new Stack<>();
+        stack.push(start);
+
+        while (!stack.empty()) {
+            Coordinate node = stack.pop();
+
+            if (!boundsCheck(node)) continue;
+            if (maze.get(node.x).get(node.y) != '.') continue;
+
+            maze.get(node.x).set(node.y, '0');
+
+            stack.push(new Coordinate(node.x, node.y + 1));
+            stack.push(new Coordinate(node.x, node.y - 1));
+            stack.push(new Coordinate(node.x + 1, node.y));
+            stack.push(new Coordinate(node.x - 1, node.y));
+        }
     }
 
 
