@@ -36,17 +36,9 @@ class SpringConditionsTest {
     }
 
     @Test
-    public void testPartTwoSmall() {
-        var sc = new SpringConditions(new Scanner(testInput));
-        assertEquals(525152, sc.partTwo());
-    }
-
-    @Test
     public void testPossibilites() {
         assertEquals(10, SpringConditions.possibilities(new SpringConditions.Row(SpringConditions.runs("?###????????"), new int[]{3,2,1})));
         assertEquals(4, SpringConditions.possibilities(new SpringConditions.Row(SpringConditions.runs(".??..??...?##."), new int[]{1, 1, 3})));
-
-        assertEquals(16384, SpringConditions.possibilities(SpringConditions.repeat(new SpringConditions.Row(SpringConditions.runs(".??..??...?##."), new int[]{1,1,3}))));
     }
 
     @Test

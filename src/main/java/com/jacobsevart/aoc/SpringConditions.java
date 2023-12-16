@@ -30,29 +30,6 @@ public class SpringConditions {
                 .reduce(0, Integer::sum);
     }
 
-    long partTwo() {
-        return rows
-                .stream()
-                .map(SpringConditions::repeat)
-                .map(SpringConditions::possibilities)
-                .reduce(0, Integer::sum);
-    }
-
-    static Row repeat(Row r) {
-        List<Run> conditions = new ArrayList<>();
-        for (int i = 0; i < r.conditions.size(); i++) {
-            conditions.addAll(r.conditions);
-            if (i + i < r.conditions.size()) conditions.add(new Run('?', 1));
-        }
-
-        int[] runs = new int[5 * r.runs.length];
-        for (int i = 0; i < 5 * r.runs.length; i++) {
-            runs[i] = r.runs[i % r.runs.length];
-        }
-
-        return new Row(conditions, runs);
-    }
-
     static int possibilities(Row row) {
         int sz = row.conditions.stream().map(Run::length).reduce(Integer::sum).get();
 
@@ -143,6 +120,4 @@ public class SpringConditions {
 
         return sb.toString();
     }
-
-
 }
