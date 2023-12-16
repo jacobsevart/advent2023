@@ -20,7 +20,6 @@ public class LightBeams {
             grid.add(row);
             visited.add(visitedRow);
         }
-
     }
 
     enum BeamDirection {
@@ -32,9 +31,40 @@ public class LightBeams {
 
     record Coordinate(int x, int y, BeamDirection direction) {};
 
+    void resetVisited() {
+        for (int i = 0; i < visited.size(); i++) {
+            for (int j = 0; j < visited.get(0).size(); j++) {
+                visited.get(i).set(j, new HashSet<>());
+            }
+        }
+    }
+
+    int findMax() {
+        int currentMax = 0;
+        for (int i = 0; i < grid.size(); i++) {
+            currentMax = Math.max(currentMax, trace(new Coordinate(i, 0, BeamDirection.RIGHT)));
+            resetVisited();
+            currentMax = Math.max(currentMax, trace(new Coordinate(i, grid.get(0).size() - 1, BeamDirection.LEFT)));
+            resetVisited();
+        }
+
+        for (int j = 0; j < grid.get(0).size(); j++) {
+            currentMax = Math.max(currentMax, trace(new Coordinate(0, j, BeamDirection.DOWN)));
+            resetVisited();
+            currentMax = Math.max(currentMax, trace(new Coordinate(grid.size() - 1, j, BeamDirection.UP)));
+            resetVisited();
+        }
+
+        return currentMax;
+    }
+
     public int trace() {
+        return trace(new Coordinate(0, 0, BeamDirection.RIGHT));
+    }
+
+    public int trace(Coordinate origin) {
         Queue<Coordinate> origins = new LinkedList<>();
-        origins.add(new Coordinate(0, 0, BeamDirection.RIGHT));
+        origins.add(origin);
 
         int i = 0;
 
