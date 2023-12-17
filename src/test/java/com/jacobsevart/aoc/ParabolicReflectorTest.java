@@ -26,27 +26,6 @@ class ParabolicReflectorTest {
     }
 
     @Test
-    public void testPartOneSmall() {
-        var reflector = new ParabolicReflector(new Scanner(testInput));
-        reflector.tiltNorth();
-
-        String expected = """
-                OOOO.#.O..
-                OO..#....#
-                OO..O##..O
-                O..#.OO...
-                ........#.
-                ..#....#.#
-                ..O..#.O.O
-                ..O.......
-                #....###..
-                #....#....""";
-
-        assertEquals(expected, reflector.render());
-        assertEquals(136, reflector.totalLoad());
-    }
-
-    @Test
     public void testCycle() {
         var reflector = new ParabolicReflector(new Scanner(testInput));
         reflector.cycle();
@@ -96,23 +75,7 @@ class ParabolicReflectorTest {
         assertEquals(expectedThreeCycle, reflector.render());
     }
 
-    @Test
-    public void testPartTwoSmall() {
-        assertEquals(64, ParabolicReflector.partTwo(new Scanner(testInput)));
-    }
 
-    @Test
-    public void testCycleSmall() {
-        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day14.txt");
-        assertNotNull(txtFile);
-
-        var reflector = new ParabolicReflector(new Scanner(txtFile));
-
-        for (int i = 0; i < 250; i++) {
-            reflector.cycle();
-            System.out.printf("%2d: %5d\n", i, reflector.totalLoad());
-        }
-    }
 
     @Test
     public void testCycleSymmetric() {
@@ -144,7 +107,6 @@ class ParabolicReflectorTest {
         reflector = new ParabolicReflector(grid);
         reflector.tiltNorth();
         String referenceNorth = reflector.render();
-        System.out.println(referenceNorth);
         reflector.tiltSouth();
         reflector.tiltNorth();
         assertEquals(referenceNorth, reflector.render());
@@ -191,7 +153,13 @@ class ParabolicReflectorTest {
         // The tilt operations are idempotent
         // Fairly high confidence in the load function since already worked on this size input
 
-        assertEquals(0, ParabolicReflector.partTwo(new Scanner(txtFile)));
+        // The states at 109 and 118 aren't the same!! How is this a cycle then?
+        assertEquals(91286, ParabolicReflector.partTwo(new Scanner(txtFile)));
+    }
+
+    @Test
+    public void testPartTwoSmall() {
+        assertEquals(64, ParabolicReflector.partTwo(new Scanner(testInput)));
     }
 
     @Test
@@ -203,6 +171,27 @@ class ParabolicReflectorTest {
         reflector.tiltNorth();
 
         assertEquals(105784, reflector.totalLoad());
+    }
+
+    @Test
+    public void testPartOneSmall() {
+        var reflector = new ParabolicReflector(new Scanner(testInput));
+        reflector.tiltNorth();
+
+        String expected = """
+                OOOO.#.O..
+                OO..#....#
+                OO..O##..O
+                O..#.OO...
+                ........#.
+                ..#....#.#
+                ..O..#.O.O
+                ..O.......
+                #....###..
+                #....#....""";
+
+        assertEquals(expected, reflector.render());
+        assertEquals(136, reflector.totalLoad());
     }
 
 }

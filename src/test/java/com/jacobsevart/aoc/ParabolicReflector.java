@@ -52,7 +52,7 @@ public class ParabolicReflector {
         long length = foundCycle.end - foundCycle.start;
         long cycle = ((long) 1000000000 - foundCycle.start) % length;
 
-        System.out.printf("length: %d, warmup: %d, spin: %d", length, foundCycle.start, cycle);
+        System.out.printf("length: %d, warmup: %d, spin: %d\n", length, foundCycle.start, cycle);
 
         var r2 = new ParabolicReflector(grid);
         for (int i = 0; i < foundCycle.start + cycle; i++) {
@@ -63,7 +63,6 @@ public class ParabolicReflector {
     }
 
     record Cycle(int start, int end) {};
-
     Cycle cycleLength() {
         Map<String, Integer> seen = new HashMap<>();
         for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -71,7 +70,9 @@ public class ParabolicReflector {
 
             String got = render();
             if (seen.containsKey(got)) {
-                return new Cycle(seen.get(got), i);
+                // The +1s turn out to be important.. later we are going to
+                // cycle n times, and here at i=0 we have cycled 1 time.
+                return new Cycle(seen.get(got) + 1, i + 1);
             }
 
             seen.put(got, i);
