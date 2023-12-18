@@ -2,6 +2,7 @@ package com.jacobsevart.aoc;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,10 +30,23 @@ class ClumsyCrucibleTest {
     }
 
     @Test
-    public void testShortestPath() {
+    public void testPartOneSmall() {
         var c = new ClumsyCrucible(new Scanner(testInput));
         var path = c.shortestPath();
 
-        System.out.println(c.renderPath(path));
+        System.out.println(c.renderPath(path.path()));
+        assertEquals(102, path.cost());
+    }
+
+    @Test
+    public void testPartOneLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day17.txt");
+        assertNotNull(txtFile);
+
+        var c = new ClumsyCrucible(new Scanner(txtFile));
+        var path = c.shortestPath();
+
+        System.out.println(c.renderPath(path.path()));
+        assertEquals(1110, path.cost());
     }
 }
