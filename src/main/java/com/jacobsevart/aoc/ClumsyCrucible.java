@@ -1,6 +1,7 @@
 package com.jacobsevart.aoc;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ClumsyCrucible {
@@ -25,6 +26,21 @@ public class ClumsyCrucible {
             }
             weights.add(row);
         }
+    }
+
+    List<Node> neighborsPartTwo(Node c) {
+        List<Node> potential = new ArrayList<>();
+
+        for (int i = 4; i <= 10; i++) {
+            potential.add(new Node(c.x + i, c.y, Direction.DOWN));
+            potential.add(new Node(c.x - i, c.y, Direction.UP));
+            potential.add(new Node(c.x, c.y - i, Direction.LEFT));
+            potential.add(new Node(c.x, c.y + i, Direction.RIGHT));
+        }
+
+        return potential.stream().filter(x -> x.direction != c.direction)
+                .filter(x -> opposites.get(c.direction) != x.direction)
+                .filter(this::boundsCheck).toList();
     }
 
     List<Node> neighbors(Node c) {
@@ -95,7 +111,7 @@ public class ClumsyCrucible {
 
     record ShortestPath(List<Node> path, int cost) {};
 
-    ShortestPath shortestPath() {
+    ShortestPath shortestPath(Function<Node, List<Node>> neighborMethod) {
         Map<Node, Integer> dist = new HashMap<>();
         PriorityQueue<Node> q = new PriorityQueue<>(Comparator.comparing(x -> dist.getOrDefault(x, Integer.MAX_VALUE)));
 
@@ -112,17 +128,22 @@ public class ClumsyCrucible {
                 }
             }
         }
+        System.out.println("Initialized");
 
         Node u = null;
         boolean found = false;
+        int i = 0;
+        int e = 0;
         while (!q.isEmpty()) {
             u = q.poll();
+            i++;
             if (u.x == weights.size() - 1 && u.y == weights.get(0).size() - 1) {
                 found = true;
                 break;
             }
 
-            for (Node v : neighbors(u)) {
+            for (Node v : neighborMethod.apply(u)) {
+                e++;
                 int alt = dist.getOrDefault(u, Integer.MAX_VALUE - 100) + incrementalCost(u, v);
                 if (alt < dist.getOrDefault(v, Integer.MAX_VALUE - 100)) {
                     dist.put(v, alt);
@@ -137,6 +158,7 @@ public class ClumsyCrucible {
 
         assert found;
         System.out.printf("Path cost: %d\n", dist.get(u));
+        System.out.printf("Explored %d nodes %d edges\n", i, e);
 
         int cost = dist.get(u);
 

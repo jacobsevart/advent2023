@@ -32,10 +32,19 @@ class ClumsyCrucibleTest {
     @Test
     public void testPartOneSmall() {
         var c = new ClumsyCrucible(new Scanner(testInput));
-        var path = c.shortestPath();
+        var path = c.shortestPath(c::neighbors);
 
         System.out.println(c.renderPath(path.path()));
         assertEquals(102, path.cost());
+    }
+
+    @Test
+    public void testPartTwoSmall() {
+        var c = new ClumsyCrucible(new Scanner(testInput));
+        var path = c.shortestPath(c::neighborsPartTwo);
+
+        System.out.println(c.renderPath(path.path()));
+        assertEquals(94, path.cost());
     }
 
     @Test
@@ -44,9 +53,19 @@ class ClumsyCrucibleTest {
         assertNotNull(txtFile);
 
         var c = new ClumsyCrucible(new Scanner(txtFile));
-        var path = c.shortestPath();
+        var path = c.shortestPath(c::neighbors);
 
-        System.out.println(c.renderPath(path.path()));
         assertEquals(1110, path.cost());
+    }
+
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day17.txt");
+        assertNotNull(txtFile);
+
+        var c = new ClumsyCrucible(new Scanner(txtFile));
+        var path = c.shortestPath(c::neighborsPartTwo);
+
+        assertEquals(1294, path.cost());
     }
 }
