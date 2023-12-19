@@ -24,42 +24,33 @@ class LagoonTest {
             L 2 (#015232)
             U 2 (#7a21e3)""";
 
+
     @Test
-    public void testConstructor() {
-        var lagoon = new Lagoon(new Scanner(testInput));
-        lagoon.sizeCanvas();
-        lagoon.draw();
-
-        String expected = """
-                #######
-                #.....#
-                ###...#
-                ..#...#
-                ..#...#
-                ###.###
-                #...#..
-                ##..###
-                .#....#
-                .######
-                """;
-
-        assertEquals(expected, lagoon.render());
-        assertEquals(62, lagoon.fill());
-        System.out.println(lagoon.render());
+    public void testPartOneShoelace() {
+        var lagoon = Lagoon.ofPartOne(new Scanner(testInput));
+        var path = lagoon.trace();
+        assertEquals(62, lagoon.area());
     }
 
     @Test
-    public void testPartOneLarge() {
+    public void testPartTwoShoelace() {
+        var lagoon = Lagoon.ofPartTwo(new Scanner(testInput));
+        assertEquals(952408144115L, lagoon.area());
+    }
+
+    @Test
+    public void testPartOneLargeShoelace() {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day18.txt");
         assertNotNull(txtFile);
-        var lagoon = new Lagoon(new Scanner(txtFile));
-        lagoon.sizeCanvas();
-        lagoon.draw();
-        assertEquals(56678, lagoon.fill());
+        var lagoon = Lagoon.ofPartOne(new Scanner(txtFile));
+        assertEquals(56678, lagoon.area());
     }
 
-
-
-
-
+    @Test
+    public void testPartTwoLargeShoelace() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day18.txt");
+        assertNotNull(txtFile);
+        var lagoon = Lagoon.ofPartTwo(new Scanner(txtFile));
+        assertEquals(79088855654037L, lagoon.area());
+    }
 }
