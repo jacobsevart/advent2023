@@ -2,8 +2,6 @@ package com.jacobsevart.aoc;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
-import java.sql.Array;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -23,18 +21,25 @@ public class Ratings {
         int sum() {
             return x + m + a + s;
         }
-    };
+    }
+
+    ;
 
     record Interval(int lo, int hi) {
         long span() {
             return hi - lo + 1;
         }
-    };
+    }
+
+    ;
+
     record Constraints(Interval x, Interval m, Interval a, Interval s) {
         long possibilities() {
             return x.span() * m.span() * a.span() * s.span();
         }
-    };
+    }
+
+    ;
 
 
     public Ratings(String s) {
@@ -62,7 +67,12 @@ public class Ratings {
         }
     }
 
-    long count2(List<Constraints> constraints) {
+    long partTwo() {
+        return count(walk());
+    }
+
+
+    long count(List<Constraints> constraints) {
         long acc = 0;
         for (Constraints c : constraints) {
             acc += c.possibilities();
@@ -75,8 +85,26 @@ public class Ratings {
         int ref = Integer.parseInt(comparison.children.get(2).getText());
 
         switch (comparison.children.get(1).getText()) {
-            case ">" -> { return new Interval(ref + 1, i.hi); }
-            case "<" -> { return new Interval(i.lo, ref - 1); }
+            case ">" -> {
+                return new Interval(ref + 1, i.hi);
+            }
+            case "<" -> {
+                return new Interval(i.lo, ref - 1);
+            }
+            default -> throw new RuntimeException();
+        }
+    }
+
+    static Interval updateIntervalOpposite(Interval i, RatingsGrammar.ComparisonContext comparison) {
+        int ref = Integer.parseInt(comparison.children.get(2).getText());
+
+        switch (comparison.children.get(1).getText()) {
+            case ">" -> {
+                return new Interval(i.lo, ref);
+            }
+            case "<" -> {
+                return new Interval(ref, i.hi);
+            }
             default -> throw new RuntimeException();
         }
     }
@@ -89,29 +117,39 @@ public class Ratings {
         return terminal;
     }
 
-   void walk(String ruleName, Constraints c, List<Constraints> terminal) {
+    void walk(String ruleName, Constraints c, List<Constraints> terminal) {
         RatingsGrammar.WorkflowContext workflow = workflows.get(ruleName);
 
-        Constraints original = c;
-
         for (var stmt : workflow.stmts().stmt()) {
-            c = original; // restore
+            Constraints down = c;
 
             if (stmt.comparison() != null) {
                 switch (stmt.comparison().children.get(0).getText()) {
-                    case "x" -> c = new Constraints(updateInterval(c.x, stmt.comparison()), c.m, c.a, c.s);
-                    case "m" -> c = new Constraints(c.x, updateInterval(c.m, stmt.comparison()), c.a, c.s);
-                    case "a" -> c = new Constraints(c.x, c.m, updateInterval(c.a, stmt.comparison()), c.s);
-                    case "s" -> c = new Constraints(c.x, c.m, c.a, updateInterval(c.s, stmt.comparison()));
+                    case "x" -> down = new Constraints(updateInterval(c.x, stmt.comparison()), c.m, c.a, c.s);
+                    case "m" -> down = new Constraints(c.x, updateInterval(c.m, stmt.comparison()), c.a, c.s);
+                    case "a" -> down = new Constraints(c.x, c.m, updateInterval(c.a, stmt.comparison()), c.s);
+                    case "s" -> down = new Constraints(c.x, c.m, c.a, updateInterval(c.s, stmt.comparison()));
+                    default -> throw new RuntimeException();
                 }
             }
 
             String consequence = stmt.consequence().getText();
 
             if (consequence.equals("A")) {
-                terminal.add(c);
-            } else if (!consequence.equals("R")){
-                walk(consequence, c, terminal);
+                terminal.add(down);
+            } else if (!consequence.equals("R")) {
+                walk(consequence, down, terminal);
+            }
+
+            // add the opposite constraint on for future iterations
+            if (stmt.comparison() != null) {
+                switch (stmt.comparison().children.get(0).getText()) {
+                    case "x" -> c = new Constraints(updateIntervalOpposite(c.x, stmt.comparison()), c.m, c.a, c.s);
+                    case "m" -> c = new Constraints(c.x, updateIntervalOpposite(c.m, stmt.comparison()), c.a, c.s);
+                    case "a" -> c = new Constraints(c.x, c.m, updateIntervalOpposite(c.a, stmt.comparison()), c.s);
+                    case "s" -> c = new Constraints(c.x, c.m, c.a, updateIntervalOpposite(c.s, stmt.comparison()));
+                    default -> throw new RuntimeException();
+                }
             }
         }
     }

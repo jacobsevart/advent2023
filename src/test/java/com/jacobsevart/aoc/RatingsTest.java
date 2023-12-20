@@ -30,7 +30,6 @@ class RatingsTest {
     @Test
     public void testRatings() {
         var r = new Ratings(testInput);
-        r.matchingParts().forEach(System.out::println);
         assertEquals(19114, r.partOne());
     }
 
@@ -44,13 +43,19 @@ class RatingsTest {
     }
 
     @Test
+    public void testPartTwoLarge() throws IOException {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day19.txt");
+        assertNotNull(txtFile);
+
+        var r = new Ratings(txtFile);
+        assertEquals(131899818301477L, r.partTwo());
+    }
+
+
+    @Test
     public void testWalk() {
         var r = new Ratings(testInput);
-        var intervals = r.walk();
-
-        intervals.forEach(System.out::println);
-
-        assertEquals(167409079868000L, r.count2(intervals));
+        assertEquals(167409079868000L, r.partTwo());
     }
 
 }
