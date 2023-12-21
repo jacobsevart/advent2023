@@ -21,7 +21,7 @@ public class Circuits {
         }
     };
 
-    record Simulation(String pulses, int lowPulses, int highPulses) {};
+    record Simulation(String pulses, int lowPulses, int highPulses, int period) {};
 
     Map<String, List<String>> out;
     Map<String, List<String>> in;
@@ -29,6 +29,9 @@ public class Circuits {
 
     Map<String,Boolean> flipFlopState;
     Map<String,Map<String,Boolean>> conjunctionState;
+    long ticks = 0;
+    int buttonPresses;
+    int watchButton;
 
     public Circuits(Scanner scan) {
         in = new HashMap<>();
@@ -64,8 +67,15 @@ public class Circuits {
             }
         }
 
+        resetState();
+    }
+
+    void resetState() {
         flipFlopState = new HashMap<>();
         conjunctionState = new HashMap<>();
+        ticks = 0L;
+        buttonPresses = 0;
+        watchButton = 0;
 
         // initialize states
         for (String s : in.keySet()) {
@@ -93,17 +103,51 @@ public class Circuits {
         return lo * hi;
     }
 
+    long partTwo() {
+        long lcm = 1L;
+        for (String connection : in.get("nr")) {
+            for (int i = 0; i < 5000; i++) {
+                int p = pressButton(false, connection).period;
+                if (p > 0) {
+                    lcm = HauntedWasteland.lcm(lcm, p);
+                    break;
+                }
+            }
+
+            resetState();
+        }
+
+        return lcm;
+    }
 
 
     Simulation pressButton() {
+        return pressButton(true, "");
+    }
+
+    Simulation pressButton(boolean log, String watch) {
+        buttonPresses++;
+
         StringBuilder sb = new StringBuilder();
         Queue<Pulse> q = new ArrayDeque<>();
         q.add(new Pulse("button", "broadcaster", false));
+
+        boolean watchState = !watch.isEmpty() && isConjunctionOutputHigh(watch);
 
         int loPulses = 0;
         int hiPulses = 0;
         while (!q.isEmpty()) {
             Pulse p = q.poll();
+            ticks++;
+
+            if (!watch.isEmpty() && isConjunctionOutputHigh(watch) != watchState) {
+                if (watchButton > 0) {
+                    return new Simulation(sb.toString(), loPulses, hiPulses, buttonPresses - watchButton + 1);
+                }
+
+                watchButton = buttonPresses;
+                watchState = !watchState;
+            }
 
             if (p.hi) {
                 hiPulses++;
@@ -112,8 +156,11 @@ public class Circuits {
             }
 
             String here = p.dest;
-            sb.append(p);
-            sb.append("\n");
+
+            if (log) {
+                sb.append(p);
+                sb.append("\n");
+            }
 
             switch (kind.getOrDefault(here, Kind.Output)) {
                 case Kind.Broadcast -> {
@@ -136,11 +183,10 @@ public class Circuits {
                 }
                 case Kind.Conjunction -> {
                     // update the conjunction state depending on source
-                    Map<String,Boolean> cs = conjunctionState.get(here);
-                    cs.put(p.src, p.hi);
+                    conjunctionState.get(here).put(p.src, p.hi);
 
                     // onward pulse is lo if all input pluses are hi, else hi
-                    boolean onwardPulse = !cs.values().stream().allMatch(x -> x);
+                    boolean onwardPulse = isConjunctionOutputHigh(here);
 
                     // forward
                     for (String onward : out.get(here)) {
@@ -150,6 +196,10 @@ public class Circuits {
             }
         }
 
-        return new Simulation(sb.toString(), loPulses, hiPulses);
+        return new Simulation(sb.toString(), loPulses, hiPulses, 0);
+    }
+
+    boolean isConjunctionOutputHigh(String s) {
+        return !conjunctionState.get(s).values().stream().allMatch(x -> x);
     }
 }

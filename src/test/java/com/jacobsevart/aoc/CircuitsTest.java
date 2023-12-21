@@ -125,4 +125,13 @@ class CircuitsTest {
         assertEquals(814934624, s.partOne());
     }
 
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day20.txt");
+        assertNotNull(txtFile);
+
+        var s = new Circuits(new Scanner(txtFile));
+        assertEquals(228282646835717L, s.partTwo());
+    }
+
 }
