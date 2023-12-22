@@ -54,4 +54,19 @@ class BricksTest {
         assertEquals(405, br.removable(br.drop()).size());
     }
 
+    @Test
+    public void testPartTwoSmall() {
+        var br = new Bricks(new Scanner(testInput));
+        assertEquals(7, br.partTwo());
+    }
+
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day22.txt");
+        assertNotNull(txtFile);
+
+        var br = new Bricks(new Scanner(txtFile));
+        assertEquals(61297, br.partTwo());
+    }
+
 }
