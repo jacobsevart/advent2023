@@ -22,55 +22,118 @@ public class StepCounter {
         }
     }
 
-    void addIfLegal(Queue<CoordinateWithLength> q, CoordinateWithLength c) {
-        if (c.x < 0 || c.x >= chars.size()) return;
-        if (c.y < 0 || c.y >= chars.get(0).size()) return;
-        char hereChar = chars.get(c.x).get(c.y);
-        if (hereChar == 'O' || hereChar == '#') return;
+    Map<Coordinate,List<Integer>> fromAllEdges() {
+        Map<Coordinate,List<Integer>> out = new HashMap<>();
 
-        q.add(c);
+        for (int i = 0; i < chars.size(); i++) {
+            out.put(new Coordinate(i, 0), Arrays.asList(walk(new CoordinateWithLength(i, 0, 0))));
+            out.put(new Coordinate(i, chars.get(0).size() - 1), Arrays.asList(walk(new CoordinateWithLength(i, chars.get(0).size() - 1, 0))));
+        }
+
+        for (int j = 0; j < chars.get(0).size(); j++) {
+            out.put(new Coordinate(0, j), Arrays.asList(walk(new CoordinateWithLength(0, j, 0))));
+            out.put(new Coordinate(chars.size() - 1, j), Arrays.asList(walk(new CoordinateWithLength(chars.size() - 1, j, 0))));
+        }
+
+        return out;
     }
 
-    public int walk(int n) {
-        Queue<CoordinateWithLength> q = new ArrayDeque<>();
-
+    CoordinateWithLength findStart() {
         for (int i = 0; i < chars.size(); i++) {
             for (int j = 0; j < chars.get(0).size(); j++) {
                 if (chars.get(i).get(j) == 'S') {
-                    q.add(new CoordinateWithLength(i, j, 0));
+                    return new CoordinateWithLength(i, j, 0);
                 }
             }
         }
+        throw new IllegalArgumentException();
+    }
 
-        int[] found = new int[n + 1];
+    public long walk(int n) {
+        return gardenPlotsIn(walk(findStart()), n);
+    }
+
+    public long gardenPlotsIn(Integer[] reachable, int n) {
+        int acc = 0;
+        for (int i = 0; i <= n; i += 2) {
+            acc += reachable[n - i];
+        }
+
+        return acc;
+    }
+
+    public long walkInfinite(long budget) {
+        Queue<CoordinateWithLength> q = new ArrayDeque<>();
+        Integer[] found = new Integer[10000];
+        Arrays.fill(found, 0);
+        Set<Coordinate> visited = new HashSet<>();
+
+        q.add(findStart());
+
+        long extra = 0L;
+
+        while (!q.isEmpty()) {
+            CoordinateWithLength here = q.poll();
+
+            if (budget - here.length < 0) {
+               continue;
+            }
+
+            if (visited.contains(new Coordinate(here.x, here.y))) continue;
+
+            char hereChar = chars.get(Math.floorMod(here.x, chars.size())).get(Math.floorMod(here.y, chars.get(0).size()));
+            if (hereChar != 'S' && hereChar != '.') continue;
+
+            visited.add(new Coordinate(here.x, here.y));
+
+            found[here.length]++;
+
+            q.add(new CoordinateWithLength(here.x - 1, here.y, here.length + 1));
+            q.add(new CoordinateWithLength(here.x + 1, here.y, here.length + 1));
+            q.add(new CoordinateWithLength(here.x, here.y -1, here.length + 1));
+            q.add(new CoordinateWithLength(here.x, here. y + 1, here.length + 1));
+        }
+
+        long acc = 0;
+        for (long i = 0; i <= budget; i += 2) {
+            acc += found[(int) (budget - i)];
+        }
+
+        return acc;
+    }
 
 
+    public Integer[] walk(CoordinateWithLength start) {
+        Queue<CoordinateWithLength> q = new ArrayDeque<>();
+        Integer[] found = new Integer[1000];
+        Arrays.fill(found, 0);
+        Set<Coordinate> visited = new HashSet<>();
+
+        q.add(start);
+
+        int maxLength = 0;
         while (!q.isEmpty()) {
             CoordinateWithLength here = q.poll();
 
             if (here.x < 0 || here.x >= chars.size()) continue;
             if (here.y < 0 || here.y >= chars.get(0).size()) continue;
+            if (visited.contains(new Coordinate(here.x, here.y))) continue;
+
             char hereChar = chars.get(here.x).get(here.y);
             if (hereChar != 'S' && hereChar != '.') continue;
 
-            chars.get(here.x).set(here.y, (char) ('a' + here.length));
+            visited.add(new Coordinate(here.x, here.y));
 
             found[here.length]++;
+            maxLength = Math.max(maxLength, here.length);
 
-            if (here.length == n) continue;
-
-            addIfLegal(q, new CoordinateWithLength(here.x - 1, here.y, here.length + 1));
-            addIfLegal(q, new CoordinateWithLength(here.x + 1, here.y, here.length + 1));
-            addIfLegal(q, new CoordinateWithLength(here.x, here.y -1, here.length + 1));
-            addIfLegal(q, new CoordinateWithLength(here.x, here. y + 1, here.length + 1));
+            q.add(new CoordinateWithLength(here.x - 1, here.y, here.length + 1));
+            q.add(new CoordinateWithLength(here.x + 1, here.y, here.length + 1));
+            q.add(new CoordinateWithLength(here.x, here.y -1, here.length + 1));
+            q.add(new CoordinateWithLength(here.x, here. y + 1, here.length + 1));
         }
 
-        int acc = 0;
-        for (int i = 0; i < found.length; i += 2) {
-            acc += found[found.length - 1 - i];
-        }
-
-        return acc;
+       return Arrays.copyOf(found, maxLength);
     }
 
     String render() {
