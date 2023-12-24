@@ -3,7 +3,10 @@ package com.jacobsevart.aoc;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,12 +58,24 @@ class LongWalkTest {
     }
 
     @Test
+    public void testPartTwoSmallOldWay() {
+        var walk = new LongWalk(new Scanner(testInput));
+        var reduction = walk.reduceGraph(walk::neighborsPartTwo);
+        System.out.printf("number of nodes: %d\n", reduction.size());
+        System.out.printf("number of edges: %d\n", reduction.values().stream().map(Set::size).reduce(0, Integer::sum));
+        var paths = walk.allPaths(reduction);
+        System.out.printf("number of paths: %d\n", paths.size());
+
+        assertEquals(154, paths.stream().map(x -> x.stream().map(y -> y.length()).reduce(0, Integer::sum)).max(Comparator.naturalOrder()).get());
+    }
+
+    @Test
     public void testPartTwoLarge() {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day23.txt");
         assertNotNull(txtFile);
 
         var walk = new LongWalk(new Scanner(txtFile));
-        assertEquals(0, walk.partTwo());
+        assertEquals(6426, walk.partTwo()); // 14 seconds
     }
 
     @Test

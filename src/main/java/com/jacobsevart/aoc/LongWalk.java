@@ -41,8 +41,19 @@ public class LongWalk {
     }
 
     int partTwo() {
-        var reduction = reduceGraph(this::neighborsPartTwo);
+        var reduction = discoverNodes();
+        discoverAdditionalEdges(reduction);
         System.out.printf("number of nodes: %d\n", reduction.size());
+
+        for (var entry : reduction.entrySet()) {
+            for (var node : entry.getValue()) {
+                System.out.printf("\"%s\" -> \"%s\" [label=%d];\n", entry.getKey(), node, node.length);
+            }
+        }
+
+        int edges = reduction.values().stream().map(Set::size).reduce(0, Integer::sum);
+        System.out.printf("number of edges: %d\n", edges);
+
         var paths = allPaths(reduction);
         System.out.printf("number of paths: %d\n", paths.size());
 
@@ -52,7 +63,7 @@ public class LongWalk {
     List<List<CoordinateWithLength>> allPaths(Map<Coordinate, Set<CoordinateWithLength>> edges) {
         List<List<CoordinateWithLength>> allPaths = new ArrayList<>();
 
-        dfsAllPaths(new CoordinateWithLength(startNode.x, startNode.y, 0), Set.of(), List.of(), allPaths, edges);
+        dfsAllPaths(new CoordinateWithLength(startNode.x, startNode.y, 0), new HashSet<>(), new ArrayList<>(), allPaths, edges);
 
         return allPaths;
     }
@@ -69,6 +80,7 @@ public class LongWalk {
         pathSet.add(c);
 
         if (ptr.x == endNode.x && ptr.y == endNode.y) {
+            if (collector.size() % 100_000 == 0) System.out.println(collector.size());
             collector.add(path);
             return;
         }
@@ -88,9 +100,7 @@ public class LongWalk {
         return edges;
     }
 
-    public void reduceGraph(Coordinate start, Coordinate here, int length, Set<Coordinate> visitedOriginal, Map<Coordinate, Set<CoordinateWithLength>> edges, Function<Coordinate, Stream<Coordinate>> neighborFinder) {
-        var visited = visitedOriginal;
-
+    public void reduceGraph(Coordinate start, Coordinate here, int length, Set<Coordinate> visited, Map<Coordinate, Set<CoordinateWithLength>> edges, Function<Coordinate, Stream<Coordinate>> neighborFinder) {
         if (visited.contains(here)) return;
 
         visited.add(here);
@@ -127,6 +137,101 @@ public class LongWalk {
 
         visited.remove(here);
     }
+
+    public Map<Coordinate, Set<CoordinateWithLength>> discoverNodes() {
+        Map<Coordinate, Set<CoordinateWithLength>> edges = new HashMap<>();
+        Set<Coordinate> visited = new HashSet<>();
+
+        record StackFrame(Coordinate start, Coordinate here, int length) {};
+
+        Stack<StackFrame> stk = new Stack<>();
+        stk.add(new StackFrame(startNode, startNode, 0));
+
+        while (!stk.isEmpty()) {
+            StackFrame frame = stk.pop();
+            visited.add(frame.here);
+
+            if (frame.here.equals(endNode)) {
+                edges.putIfAbsent(frame.start, new HashSet<>());
+
+                edges.get(frame.start).add(new CoordinateWithLength(frame.here.x, frame.here.y, frame.length));
+                edges.put(frame.here, new HashSet<>()); // no outward edges, but so it will show up
+                continue;
+            }
+
+            List<Coordinate> uniqueNeighbors = boundsChecked(neighborsPartTwo(frame.here)).stream().filter(x -> !visited.contains(x)).filter(x -> !x.equals(frame.here)).toList();
+            if (uniqueNeighbors.isEmpty()) continue;
+
+            if (uniqueNeighbors.size() == 1) {
+                stk.push(new StackFrame(frame.start, uniqueNeighbors.get(0), frame.length + 1));
+            } else {
+                edges.putIfAbsent(frame.start, new HashSet<>());
+                edges.get(frame.start).add(new CoordinateWithLength(frame.here.x,frame. here.y, frame.length));
+
+                for (Coordinate n : uniqueNeighbors) {
+                    stk.push(new StackFrame(frame.here, n, 0));
+                }
+            }
+        }
+
+        return edges;
+    }
+
+    public void discoverAdditionalEdges(Map<Coordinate, Set<CoordinateWithLength>> edges) {
+        Set<LongWalk.Coordinate> nodeSet = new HashSet<>();
+        for (var entry : edges.entrySet()) {
+            nodeSet.add(entry.getKey());
+
+            for (var node : entry.getValue()) {
+                nodeSet.add(new LongWalk.Coordinate(node.x(), node.y()));
+            }
+        }
+
+        for (var node : nodeSet) {
+            checkConnectivity(node, nodeSet, edges);
+        }
+    }
+
+    void checkConnectivity(Coordinate from, Set<Coordinate> stoppingPoints, Map<Coordinate, Set<CoordinateWithLength>> edges) {
+        Set<Coordinate> visited = new HashSet<>();
+        Stack<CoordinateWithLength> stk = new Stack<>();
+
+        stk.add(new CoordinateWithLength(from.x, from.y, 0));
+
+        while (!stk.isEmpty()) {
+            CoordinateWithLength frame = stk.pop();
+
+            Coordinate c = new Coordinate(frame.x, frame.y);
+            if (visited.contains(c))     continue;
+            visited.add(c);
+
+            if (stoppingPoints.contains(c) && !c.equals(from)) {
+
+                edges.putIfAbsent(from, new HashSet<>());
+
+                Optional<CoordinateWithLength> found = edges.get(from).stream().filter(x -> x.x == frame.x && x.y == frame.y).findAny();
+                if (found.isPresent()) {
+                    if (frame.length > found.get().length) {
+                        edges.get(from).remove(found.get());
+                        edges.get(from).add(frame);
+                    }
+
+                    // avoid adding duplicate
+
+                } else {
+                    edges.get(from).add(frame);
+                    System.out.printf("discover new edge %s -> %s\n", from, c);
+                }
+
+                continue; // can go further from another traversal
+            }
+
+            for (Coordinate n : boundsChecked(neighborsPartTwo(c))) {
+                stk.add(new CoordinateWithLength(n.x, n.y, frame.length + 1));
+            }
+        }
+    }
+
 
     public void checkDag(Coordinate ptr, Map<Coordinate, Set<CoordinateWithLength>> edges, List<Coordinate> path) {
         if (path.contains(ptr)) throw new RuntimeException(String.format("not a dag: %s :  %s", ptr, path));
