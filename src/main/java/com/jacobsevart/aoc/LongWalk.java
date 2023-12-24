@@ -1,13 +1,27 @@
 package com.jacobsevart.aoc;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class LongWalk {
     List<List<Character>> grid;
 
-    public record Coordinate(int x, int y) {};
-    public record CoordinateWithLength(int x, int y, int length) {};
+    public record Coordinate(int x, int y) {
+        @Override
+        public String toString() {
+            return String.format("(%d, %d)", x, y);
+        }
+    };
+    public record CoordinateWithLength(int x, int y, int length) {
+        @Override
+        public String toString() {
+            return String.format("(%d, %d)", x, y);
+        }
+    };
+
+    Coordinate startNode;
+    Coordinate endNode;
 
     public LongWalk(Scanner in) {
         grid = new ArrayList<>();
@@ -21,43 +35,97 @@ public class LongWalk {
 
             grid.add(row);
         }
+
+        startNode = new LongWalk.Coordinate(0, 1);
+        endNode =  new LongWalk.Coordinate(grid.size() - 1, grid.get(0).size() - 2);
     }
 
-    public Map<Coordinate, Set<CoordinateWithLength>> reduceDag(Coordinate start, Coordinate dest) {
+    int partTwo() {
+        var reduction = reduceGraph(this::neighborsPartTwo);
+        System.out.printf("number of nodes: %d\n", reduction.size());
+        var paths = allPaths(reduction);
+        System.out.printf("number of paths: %d\n", paths.size());
+
+        return paths.stream().map(x -> x.stream().map(CoordinateWithLength::length).reduce(0, Integer::sum)).max(Comparator.naturalOrder()).get();
+    }
+
+    List<List<CoordinateWithLength>> allPaths(Map<Coordinate, Set<CoordinateWithLength>> edges) {
+        List<List<CoordinateWithLength>> allPaths = new ArrayList<>();
+
+        dfsAllPaths(new CoordinateWithLength(startNode.x, startNode.y, 0), Set.of(), List.of(), allPaths, edges);
+
+        return allPaths;
+    }
+
+    private void dfsAllPaths(CoordinateWithLength ptr, Set<Coordinate> pathSet, List<CoordinateWithLength> path, List<List<CoordinateWithLength>> collector, Map<Coordinate, Set<CoordinateWithLength>> edges) {
+        if (pathSet.contains(new Coordinate(ptr.x, ptr.y))) return;
+
+        Coordinate c = new Coordinate(ptr.x, ptr.y);
+
+        path = new ArrayList<>(path);
+        path.add(ptr);
+
+        pathSet = new HashSet<>(pathSet);
+        pathSet.add(c);
+
+        if (ptr.x == endNode.x && ptr.y == endNode.y) {
+            collector.add(path);
+            return;
+        }
+
+        for (var edge : edges.get(c)) {
+            dfsAllPaths(edge, pathSet, path, collector, edges);
+        }
+    }
+
+    public Map<Coordinate, Set<CoordinateWithLength>> reduceGraph(Function<Coordinate, Stream<Coordinate>> neighborFinder) {
         Map<Coordinate, Set<CoordinateWithLength>> edges = new HashMap<>();
         Set<Coordinate> visited = new HashSet<>();
-        visited.add(start);
 
-        reduceDag(start, start, 0, dest, visited, edges);
-        checkDag(start, edges, new ArrayList<>());
+        reduceGraph(startNode, startNode, 0, visited, edges, neighborFinder);
+//        checkDag(start, edges, new ArrayList<>());
 
         return edges;
     }
 
-    public void reduceDag(Coordinate start, Coordinate here, int length, Coordinate dest, Set<Coordinate> visitedOriginal, Map<Coordinate, Set<CoordinateWithLength>> edges) {
-        var visited = new HashSet<>(visitedOriginal);
+    public void reduceGraph(Coordinate start, Coordinate here, int length, Set<Coordinate> visitedOriginal, Map<Coordinate, Set<CoordinateWithLength>> edges, Function<Coordinate, Stream<Coordinate>> neighborFinder) {
+        var visited = visitedOriginal;
+
+        if (visited.contains(here)) return;
+
         visited.add(here);
 
-        if (here.equals(dest)) {
+        if (here.equals(endNode)) {
             if (!edges.containsKey(start)) edges.put(start, new HashSet<>());
 
             edges.get(start).add(new CoordinateWithLength(here.x, here.y, length));
             edges.put(here, new HashSet<>()); // no outward edges, but so it will show up
         }
 
-        List<Coordinate> uniqueNeighbors = boundsChecked(neighbors(here)).stream().filter(x -> !visited.contains(x)).filter(x -> !x.equals(start)).toList();
-        if (uniqueNeighbors.isEmpty()) return;
-
-        if (uniqueNeighbors.size() == 1) {
-            reduceDag(start, uniqueNeighbors.get(0), length + 1, dest, visited, edges);
+        List<Coordinate> uniqueNeighbors = boundsChecked(neighborFinder.apply(here)).stream().filter(x -> !visited.contains(x)).filter(x -> !x.equals(start)).toList();
+        if (uniqueNeighbors.isEmpty()) {
+            visited.remove(here);
             return;
         }
 
-        edges.putIfAbsent(start, new HashSet<>());
-        edges.get(start).add(new CoordinateWithLength(here.x, here.y, length + 1));
-        for (Coordinate n : uniqueNeighbors) {
-            reduceDag(here, n, 0, dest, visited, edges);
+        if (uniqueNeighbors.size() == 1) {
+            reduceGraph(start, uniqueNeighbors.get(0), length + 1, visited, edges, neighborFinder);
+            visited.remove(here);
+            return;
         }
+
+        CoordinateWithLength newLink = new CoordinateWithLength(here.x, here.y, length + 1);
+        if (!edges.getOrDefault(start, Set.of()).contains(newLink)) {
+            System.out.printf("add edge! %s -> %s\n", start, here);
+        }
+
+        edges.putIfAbsent(start, new HashSet<>());
+        edges.get(start).add(newLink);
+        for (Coordinate n : uniqueNeighbors) {
+            reduceGraph(here, n, 0, visited, edges, neighborFinder);
+        }
+
+        visited.remove(here);
     }
 
     public void checkDag(Coordinate ptr, Map<Coordinate, Set<CoordinateWithLength>> edges, List<Coordinate> path) {
@@ -84,7 +152,7 @@ public class LongWalk {
                 .toList();
     }
 
-    Stream<Coordinate> neighbors(Coordinate c) {
+    Stream<Coordinate> neighborsPartOne(Coordinate c) {
         switch (grid.get(c.x).get(c.y)) {
             case '.' -> {
                 return Stream.of(new Coordinate(c.x - 1, c.y), new Coordinate(c.x + 1, c.y), new Coordinate(c.x, c.y -1), new Coordinate(c.x, c.y + 1));
@@ -105,6 +173,14 @@ public class LongWalk {
                 throw new RuntimeException(String.format("unknown char %c", grid.get(c.x).get(c.y)));
             }
         }
+    }
+
+    Stream<Coordinate> neighborsPartTwo(Coordinate c) {
+        return Stream.of(
+                new Coordinate(c.x - 1, c.y),
+                new Coordinate(c.x + 1, c.y),
+                new Coordinate(c.x, c.y -1),
+                new Coordinate(c.x, c.y + 1));
     }
 
     public int longestPath(Coordinate origin, Coordinate destination, Map<Coordinate, Set<CoordinateWithLength>> edges) {
