@@ -60,6 +60,8 @@ public class Hail {
         return found;
     }
 
+    // Part Two solved using sympy, see day24_part2.py.
+
     public Optional<Coordinate> crossPaths(Stone a, Stone b) {
         if (b.dx * a.dy == (a.dx * b.dy)) return Optional.empty();
 
