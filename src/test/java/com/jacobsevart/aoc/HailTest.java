@@ -48,6 +48,6 @@ class HailTest {
         var hail = new Hail(new Scanner(txtFile));
         var list = hail.partOne(200000000000000L, 400000000000000L);
 
-        assertEquals(1, list.size());
+        assertEquals(21874, list.size());
     }
 }
