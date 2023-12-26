@@ -46,18 +46,18 @@ class ReflectionsTest {
     @Test
     public void testFindHorizontalReflection() {
         var map = Reflections.parse(new Scanner(testInputVertical));
-        assertEquals(-1, Reflections.findHorizontalReflection(map));
+        assertEquals(-1, Reflections.findHorizontalReflection(map, 0, -1));
         map = Reflections.parse(new Scanner(testInputHorizontal));
-        assertEquals(3, Reflections.findHorizontalReflection(map));
+        assertEquals(3, Reflections.findHorizontalReflection(map, 0, -1));
     }
 
     @Test
     public void testFindVerticalReflection() {
         var map = Reflections.parse(new Scanner(testInputHorizontal));
-        assertEquals(-1, Reflections.findVerticalReflection(map));
+        assertEquals(-1, Reflections.findVerticalReflection(map, 0, -1));
 
         var map2 = Reflections.parse(new Scanner(testInputVertical));
-        assertEquals(4, Reflections.findVerticalReflection(map2));
+        assertEquals(4, Reflections.findVerticalReflection(map2, 0, -1));
     }
 
     @Test
@@ -66,10 +66,23 @@ class ReflectionsTest {
     }
 
     @Test
+    public void testPartTwoSmall() {
+        assertEquals(400, Reflections.partTwo(new Scanner(testInput)));
+    }
+
+    @Test
     public void testPartOneLarge() {
         InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day13.txt");
         assertNotNull(txtFile);
 
-        assertEquals(0, Reflections.partOne(new Scanner(txtFile)));
+        assertEquals(27502, Reflections.partOne(new Scanner(txtFile)));
+    }
+
+    @Test
+    public void testPartTwoLarge() {
+        InputStream txtFile = Thread.currentThread().getContextClassLoader().getResourceAsStream("day13.txt");
+        assertNotNull(txtFile);
+
+        assertEquals(31947, Reflections.partTwo(new Scanner(txtFile)));
     }
 }
